@@ -48,8 +48,10 @@ public interface SeleniumSupport {
         try {
             getWebDriver().manage().window().maximize();
         } catch (Exception ex) {
-            // ignored, e.g.: WebDriverException: unknown error: failed to change window state to normal, current state is maximized
-            getLogger().warn("Cannot maximize window: " + ex.getMessage());
+            // ignored,
+            // e.g.: WebDriverException: unknown error: failed to change window state to normal, current state is maximized
+            // e.g.: WebDriverException: disconnected: unable to connect to renderer
+            getLogger().warn("Cannot maximize window");
         }
     }
 

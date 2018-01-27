@@ -49,9 +49,6 @@ public class ProductPlayingProbe implements Probe, SeleniumSupport {
         ensureCookiesConfirmed();
         ensureUserLoggedIn();
 
-        // Previous actions can take some time
-        waitForMs(5000);
-
         // Go to product page
         webDriver.get(productUrl);
 
@@ -66,6 +63,7 @@ public class ProductPlayingProbe implements Probe, SeleniumSupport {
 
         // Go to homepage so the player does not bother us with sound
         webDriver.get(homepageUrl);
+        logoutUser();
         return result;
     }
 
@@ -82,13 +80,13 @@ public class ProductPlayingProbe implements Probe, SeleniumSupport {
     private void ensureCookiesConfirmed() {
         try {
             // See http://docs.seleniumhq.org/docs/04_webdriver_advanced.jsp#explicit-and-implicit-waits
-            WebElement allowCookiesBtn = new WebDriverWait(webDriver, 7)
+            WebElement allowCookiesBtn = new WebDriverWait(webDriver, 5)
                 .until(ExpectedConditions.elementToBeClickable(By.id("cookies-info-ok")));
             if (allowCookiesBtn != null && allowCookiesBtn.isDisplayed()) {
                 allowCookiesBtn.click();
             }
         } catch (Exception ex) {
-            getLogger().warn("Cookies already confirmed:" + ex.getMessage());
+            getLogger().warn("Cookies already confirmed");
         }
     }
 
@@ -97,20 +95,42 @@ public class ProductPlayingProbe implements Probe, SeleniumSupport {
     }
 
     private void ensureUserLoggedIn() {
-        Optional<WebElement> loginMenuElem = findFirstElement(By.className("login"));
-        if (loginMenuElem.isPresent()) {
-            // Click on login menu (pull it out)
-            loginMenuElem.get().click();
-            Optional<WebElement> emailElem = findFirstElement(By.id("nav_email"));
-            if (emailElem.isPresent()) {
-                Optional<WebElement> passElem = findFirstElement(By.id("nav_password"));
-                if (passElem.isPresent()) {
-                    // fill login data
-                    emailElem.get().sendKeys(user);
-                    passElem.get().sendKeys(password);
-                    // Click on login button
-                    findFirstElement(new ByAttribute("data-jnp", "user.login.button")).ifPresent(elem -> elem.click());
+        if (!findFirstElement(By.className("usr-name")).isPresent()) {
+            // User is not logged yet
+            Optional<WebElement> loginMenuElem = findLoginMenuElem();
+            if (loginMenuElem.isPresent() && loginMenuElem.get().isDisplayed()) {
+                // Click on login menu (pull it out)
+                loginMenuElem.get().click();
+                Optional<WebElement> emailElem = findFirstElement(By.id("nav_email"));
+                if (emailElem.isPresent()) {
+                    Optional<WebElement> passElem = findFirstElement(By.id("nav_password"));
+                    if (passElem.isPresent()) {
+                        // fill login data
+                        emailElem.get().sendKeys(user);
+                        passElem.get().sendKeys(password);
+                        // Click on login button
+                        findFirstElement(new ByAttribute("data-jnp", "user.login.button")).ifPresent(elem -> elem.click());
+                        // Login can take some time, wait for a while
+                        waitForMs(3000);
+                    }
                 }
+            }
+        }
+    }
+
+    private Optional<WebElement> findLoginMenuElem() {
+        return Optional.ofNullable(new WebDriverWait(webDriver, 5)
+            .until(ExpectedConditions.elementToBeClickable(By.className("login"))));
+    }
+
+    private void logoutUser() {
+        if (findFirstElement(By.className("usr-name")).isPresent()) {
+            // user is logged in
+            Optional<WebElement> loginMenuElem = findLoginMenuElem();
+            if (loginMenuElem.isPresent() && loginMenuElem.get().isDisplayed()) {
+                // Click on login menu (pull it out)
+                loginMenuElem.get().click();
+                findFirstElement(new ByAttribute("data-jnp", "mt.user.LogOut")).ifPresent(elem -> elem.click());
             }
         }
     }
