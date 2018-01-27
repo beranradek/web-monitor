@@ -1,8 +1,6 @@
 package cz.rbe.monitor.common.selenium;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,14 +43,15 @@ public interface SeleniumSupport {
     }
 
     default void maximizeWindow() {
-        try {
-            getWebDriver().manage().window().maximize();
-        } catch (Exception ex) {
-            // ignored,
-            // e.g.: WebDriverException: unknown error: failed to change window state to normal, current state is maximized
-            // e.g.: WebDriverException: disconnected: unable to connect to renderer
-            getLogger().warn("Cannot maximize window");
-        }
+        //try {
+        //    // This does not work for Chrome as stated in https://stackoverflow.com/questions/3189430/how-to-maximize-the-browser-window-in-selenium-webdriver-selenium-2-using-c
+        //    // getWebDriver().manage().window().maximize();
+        //} catch (Exception ex) {
+        //    // ignored,
+        //    // e.g.: WebDriverException: unknown error: failed to change window state to normal, current state is maximized
+        //    // e.g.: WebDriverException: disconnected: unable to connect to renderer
+        //    getLogger().warn("Cannot maximize window: " + ex.getMessage());
+        //}
     }
 
     default boolean isElementPresent(By by) {

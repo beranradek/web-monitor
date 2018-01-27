@@ -41,7 +41,7 @@ public class NewTicketProbe implements Probe, SeleniumSupport {
     public ProbeResult run() {
         ProbeResult result = new ProbeResult(getName());
 
-        maximizeWindow();
+        // maximizeWindow(); // does not work for Chrome driver
         webDriver.get(loginUrl);
         webDriver.findElement(By.id("frm-signInForm-username")).sendKeys(user);
         webDriver.findElement(By.id("frm-signInForm-password")).sendKeys(password);

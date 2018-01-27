@@ -41,7 +41,7 @@ public class ProductPlayingProbe implements Probe, SeleniumSupport {
     @Override
     public ProbeResult run() {
         ProbeResult result = new ProbeResult(getName());
-        maximizeWindow();
+        // maximizeWindow(); // does not work for Chrome driver
         webDriver.get(homepageUrl);
 
         setDeviceIdsCookie();
@@ -85,8 +85,10 @@ public class ProductPlayingProbe implements Probe, SeleniumSupport {
             if (allowCookiesBtn != null && allowCookiesBtn.isDisplayed()) {
                 allowCookiesBtn.click();
             }
+        } catch (TimeoutException ex) {
+            // getLogger().warn("Cookies already confirmed");
         } catch (Exception ex) {
-            getLogger().warn("Cookies already confirmed");
+            getLogger().error("Cookies confirmation error: " + ex.getMessage(), ex);
         }
     }
 

@@ -17,6 +17,7 @@ public class WebDriverSetup {
         try {
             DesiredCapabilities capabilities = DesiredCapabilities.chrome();
             ChromeOptions options = new ChromeOptions();
+            options.addArguments("--start-maximized"); // workaround for Chrome where getWebDriver().manage().window().maximize() does not work
             capabilities.setCapability(ChromeOptions.CAPABILITY, options);
             RemoteWebDriver webDriver = new RemoteWebDriver(new URL(webDriverUrl), capabilities);
             webDriver.manage().timeouts().implicitlyWait(implicitWaitSec, TimeUnit.SECONDS);
