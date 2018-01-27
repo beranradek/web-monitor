@@ -21,6 +21,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Service providing composition and running of concrete monitoring probes.
@@ -109,7 +110,7 @@ public class DefaultMonitoringService implements MonitoringService, AutoCloseabl
     @Scheduled(fixedRate = 240000) // 60 s
     public void executeProbes() {
         SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
-        log.info("Running probes at time {}", dateFormat.format(new Date()));
+        log.info("Running {} probes at time {}", probes.size(), dateFormat.format(new Date()));
 
         List<ProbeResult> updatedProbeResults = new ArrayList<>();
         for (Probe probe : probes) {
@@ -126,12 +127,19 @@ public class DefaultMonitoringService implements MonitoringService, AutoCloseabl
             updatedProbeResults.add(probeResult);
         }
 
-        if (updatedProbeResults.stream().anyMatch(res -> res.getSeverity() == ResultSeverity.ERROR)) {
+        List<ProbeResult> probesWithError = updatedProbeResults.stream().filter(res -> res.getSeverity() == ResultSeverity.ERROR).collect(Collectors.toList());
+        if (!probesWithError.isEmpty()) {
             runAlarm();
         }
 
+        StringBuilder errorsDesc = new StringBuilder();
+        for (ProbeResult probeResult : probesWithError) {
+            errorsDesc.append("\n" + probeResult.getProbeName() + " says '" + probeResult.getMessage() + "'");
+        }
+
         this.probeResults = updatedProbeResults;
-        log.info("Probes finished at time {}", dateFormat.format(new Date()));
+        String resultDesc = probesWithError.isEmpty() ? "success" : ("errors (" + probesWithError.size() + "): " + errorsDesc.toString());
+        log.info("Probes ({}) finished at time {} with {}", probes.size(), dateFormat.format(new Date()), resultDesc);
     }
 
     private void runAlarm() {
